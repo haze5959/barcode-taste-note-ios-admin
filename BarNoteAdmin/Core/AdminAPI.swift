@@ -503,6 +503,6 @@ enum AdminAPI {
 
     // GET products/barcode/:barcode_id - 바코드로 제품 조회
     static func getProductByBarcode(barcodeId: String) async throws -> ProductByBarcodeResponse {
-        try await get("products/barcode/\(barcodeId)")
+        try await get("products/barcode/\(barcodeId)?skip_record=true")
     }
 }
