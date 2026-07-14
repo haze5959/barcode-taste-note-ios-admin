@@ -107,9 +107,11 @@ struct NoteRow: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(info.note.body.isEmpty ? "(내용 없음)" : info.note.body)
-                .font(.subheadline)
-                .lineLimit(2)
+            if info.note.rating ?? 0 > 0 {
+                Text(info.note.body.isEmpty ? "(내용 없음)" : info.note.body)
+                    .font(.subheadline)
+                    .lineLimit(2)
+            }
 
             HStack(spacing: 8) {
                 Text(info.product.name)

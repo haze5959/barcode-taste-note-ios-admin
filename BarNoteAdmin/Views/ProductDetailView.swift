@@ -184,6 +184,12 @@ struct ProductDetailView: View {
                             RemoteImage(url: versionedImageURL(imageId))
                                 .frame(width: 72, height: 72)
                                 .clipShape(RoundedRectangle(cornerRadius: 10))
+                                // fill 모드 이미지는 프레임 밖까지 레이아웃 경계가 넘치는데
+                                // clipShape는 그리기만 자르고 히트 영역은 그대로라
+                                // 롱프레스가 옆 타일/스크롤뷰 전체를 집어 올린다.
+                                // 히트 영역과 컨텍스트 메뉴 미리보기를 타일 모양으로 제한한다.
+                                .contentShape(RoundedRectangle(cornerRadius: 10))
+                                .contentShape(.contextMenuPreview, RoundedRectangle(cornerRadius: 10))
                                 .onTapGesture { viewer = ImageViewerState(index: index) }
                                 .contextMenu {
                                     Button(role: .destructive) {
