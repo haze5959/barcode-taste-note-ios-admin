@@ -162,11 +162,20 @@ struct User: Codable, Hashable, Identifiable {
     let nickName: String?
     let intro: String?
     let imageId: String?
+    let registered: String?
+    let premiumExpireAt: String?
 
     enum CodingKeys: String, CodingKey {
-        case id, intro
+        case id, intro, registered
         case nickName = "nick_name"
         case imageId = "image_id"
+        case premiumExpireAt = "premium_expire_at"
+    }
+
+    /// 프리미엄 유저 여부 (premium_expire_at 날짜가 존재하고 현재 시각 이후인 경우)
+    var isPremium: Bool {
+        guard let date = DateLabel.parseDate(premiumExpireAt) else { return false }
+        return date > Date()
     }
 }
 
@@ -320,13 +329,18 @@ enum DateLabel {
         return formatter
     }()
 
+    /// 서버 timestamptz 문자열을 Date로 파싱
+    static func parseDate(_ raw: String?) -> Date? {
+        guard let raw, !raw.isEmpty else { return nil }
+        return isoFormatter.date(from: raw)
+            ?? isoFormatterNoFraction.date(from: raw)
+            ?? microsecondsFormatter.date(from: raw)
+    }
+
     /// 서버 timestamptz 문자열을 "yyyy. MM. dd. HH:mm" 로 변환. 파싱 실패 시 원본 그대로 반환.
     static func display(_ raw: String?) -> String {
         guard let raw, !raw.isEmpty else { return "-" }
-        let parsed = isoFormatter.date(from: raw)
-            ?? isoFormatterNoFraction.date(from: raw)
-            ?? microsecondsFormatter.date(from: raw)
-        if let parsed {
+        if let parsed = parseDate(raw) {
             return displayFormatter.string(from: parsed)
         }
         return raw

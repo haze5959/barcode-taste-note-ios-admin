@@ -125,10 +125,14 @@ struct NoteRow: View {
                     .foregroundStyle(.secondary)
             }
 
-            HStack {
+            HStack(spacing: 4) {
                 Text(info.user?.nickName ?? "알 수 없음")
                     .font(.caption2)
                     .foregroundStyle(.tertiary)
+                if info.user?.isPremium == true {
+                    Text("👑")
+                        .font(.caption2)
+                }
                 Spacer()
                 Text(DateLabel.display(info.note.registered))
                     .font(.caption2)
@@ -197,7 +201,18 @@ struct NoteDetailSheet: View {
                 }
 
                 Section("작성자 / 제품") {
-                    LabeledContent("작성자", value: info.user?.nickName ?? "알 수 없음")
+                    LabeledContent("작성자") {
+                        HStack(spacing: 4) {
+                            Text(info.user?.nickName ?? "알 수 없음")
+                            if info.user?.isPremium == true {
+                                Text("👑")
+                            }
+                            if let registered = info.user?.registered, !registered.isEmpty {
+                                Text("(가입일: \(DateLabel.display(registered)))")
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
                     LabeledContent("제품명", value: info.product.name)
                     LabeledContent("노트 ID") {
                         Text(info.note.id)

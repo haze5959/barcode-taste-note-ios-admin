@@ -87,7 +87,7 @@ struct DashboardView: View {
 
     /// 어드민 웹과 동일한 일일 수익 추정: floor((2000 / 30) × 구독자 수)
     private func dailyRevenue(_ stats: DashboardStats) -> Int {
-        Int((2000.0 / 30.0 * Double(stats.premiumUserCount ?? 0)).rounded(.down))
+        Int((1200.0 / 30.0 * Double(stats.premiumUserCount ?? 0)).rounded(.down))
     }
 
     private func activeUsersCard(_ stats: DashboardStats) -> some View {
