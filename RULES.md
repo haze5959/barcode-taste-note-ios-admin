@@ -74,7 +74,7 @@ BarNoteAdmin/
 | GET | `admin/report` | – | [Report] |
 | PUT | `admin/report` | {id, reply} | – |
 | GET | `products` | page, per, order_by=registered, skip_record=true[, name] | [ProductInfo] |
-| GET | `products/:id` | – | ProductInfo |
+| GET | `products/:id` | skip_record=true | ProductInfo |
 | GET | `admin/product/details` | product_name, only_details("true"/"false") | ProductDetailsResponse |
 | GET | `admin/product/main_image` | product_id | ProductMainImageResponse |
 | PUT | `admin/product` | UpdateProductRequest | Product |

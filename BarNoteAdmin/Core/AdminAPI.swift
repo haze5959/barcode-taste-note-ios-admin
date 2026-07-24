@@ -317,7 +317,7 @@ enum AdminAPI {
 
     // GET /products/:id
     static func getProductDetail(id: String) async throws -> ProductInfo {
-        try await get("products/\(id)")
+        try await get("products/\(id)", query: [.init(name: "skip_record", value: String(true))])
     }
 
     // GET admin/product/details (자동 기입)
