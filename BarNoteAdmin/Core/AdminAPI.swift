@@ -307,6 +307,7 @@ enum AdminAPI {
             .init(name: "page", value: String(page)),
             .init(name: "per", value: String(C.pagingCount)),
             .init(name: "order_by", value: "registered"),
+            .init(name: "skip_record", value: String(true)),
         ]
         if let search, !search.isEmpty {
             query.append(.init(name: "name", value: search))

@@ -113,11 +113,15 @@ struct NoteRow: View {
                     .lineLimit(2)
             }
 
-            HStack(spacing: 8) {
+            HStack(spacing: 4) {
                 Text(info.product.name)
                     .font(.caption.weight(.medium))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
+                if info.product.needsReview {
+                    ReviewNeededBadge()
+                        .font(.caption2)
+                }
                 Spacer()
                 RatingLabel(rating: info.note.rating)
                 Image(systemName: info.note.publicScope.systemImage)

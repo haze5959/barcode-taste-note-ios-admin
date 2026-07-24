@@ -136,6 +136,16 @@ struct TagView: View {
     }
 }
 
+// MARK: - 검토 필요 마커
+
+/// 아직 검토되지 않은 제품 옆에 표시하는 🔍 마커 (어드민 웹의 "검토가 필요한 제품입니다" 툴팁 미러링)
+struct ReviewNeededBadge: View {
+    var body: some View {
+        Text("🔍")
+            .accessibilityLabel("검토 필요")
+    }
+}
+
 // MARK: - 별점 표시
 
 struct RatingLabel: View {

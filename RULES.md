@@ -73,7 +73,7 @@ BarNoteAdmin/
 | GET | `admin/dashboard` | – | DashboardStats |
 | GET | `admin/report` | – | [Report] |
 | PUT | `admin/report` | {id, reply} | – |
-| GET | `products` | page, per, order_by=registered[, name] | [ProductInfo] |
+| GET | `products` | page, per, order_by=registered, skip_record=true[, name] | [ProductInfo] |
 | GET | `products/:id` | – | ProductInfo |
 | GET | `admin/product/details` | product_name, only_details("true"/"false") | ProductDetailsResponse |
 | GET | `admin/product/main_image` | product_id | ProductMainImageResponse |
@@ -102,7 +102,7 @@ BarNoteAdmin/
 ## Data Models (Core/Models.swift)
 | Type | Key fields (JSON key if snake_case) |
 |---|---|
-| Product | id, name, type: Int, desc, rating: Double?, flavorInfos (flavor_infos), details, registered, noteCount (note_count) |
+| Product | id, name, type: Int, desc, rating: Double?, flavorInfos (flavor_infos), details, registered, noteCount (note_count), isVerified (is_verified): Bool? — admin review flag; `product.needsReview` = `!(isVerified ?? false)` |
 | ProductDetails | style/grape: Int?, manufacturer/country: String?, alcohol/ibu: Double? — no CodingKeys |
 | ProductInfo | product, imageIds (image_ids), favoriteCount (favorite_count); `id` is COMPUTED = product.id — server sends no top-level id |
 | Report | id, productId, userId, body, state, reply (var), type, registered; computed typeLabel (0=제품 신고, 1=기타), isReplied |
@@ -124,7 +124,7 @@ BarNoteAdmin/
 | MainTabView | root when logged in | 5 tabs, each in its own NavigationStack: 대시보드/제품/노트/신고/관리 |
 | DashboardView | 대시보드 tab | StatCard grid; daily revenue estimate = `floor(2000/30 × premiumUserCount)` won (web parity, hardcoded) |
 | ProductsView | 제품 tab | searchable, infinite scroll, `NavigationLink(value:)` + `navigationDestination(for: ProductInfo.self)` |
-| ProductDetailView | push from ProductsView | edit form, image upload/URL, barcodes, auto-fill, merge (sleeps 1s before dismiss), delete. List payload omits desc/details (abridged product), so it re-fetches `products/:id` on appear and fills the form via `applyInfo` (web-dialog parity) |
+| ProductDetailView | push from ProductsView | edit form, image upload/URL, barcodes, auto-fill, merge (sleeps 1s before dismiss), delete. List payload omits desc/details (abridged product), so it re-fetches `products/:id` on appear and fills the form via `applyInfo` (web-dialog parity). `save()` sends ONLY changed fields (diffed against loaded `info.product`); `details` is compared/sent as a whole `normalizedDetails` object (empty strings stripped) — web `handleSaveChanges` parity. `UpdateProductRequest` optionals are nil by default and nil fields are omitted (encodeIfPresent) |
 | NotesView | 노트 tab | read-only, infinite scroll, `sheet(item:)` → NoteDetailSheet |
 | ReportsView | 신고 tab | non-paged `getReports()`; ReportDetailSheet posts reply; type==1 (기타) has NO product |
 | ManageView | 관리 tab | sole entry to DeletedImagesView / BarcodeFailuresView / BarcodeScansView; logout behind confirmationDialog |

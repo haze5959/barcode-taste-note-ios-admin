@@ -126,9 +126,14 @@ struct ProductRow: View {
                 .clipShape(RoundedRectangle(cornerRadius: 10))
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(info.product.name)
-                    .font(.subheadline.weight(.semibold))
-                    .lineLimit(2)
+                HStack(spacing: 4) {
+                    Text(info.product.name)
+                        .font(.subheadline.weight(.semibold))
+                        .lineLimit(2)
+                    if info.product.needsReview {
+                        ReviewNeededBadge()
+                    }
+                }
 
                 HStack(spacing: 8) {
                     TagView(text: ProductTypeLabel.label(for: info.product.type), color: .blue)

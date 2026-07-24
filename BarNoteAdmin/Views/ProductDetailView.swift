@@ -15,6 +15,7 @@ struct ProductDetailView: View {
     @State private var name: String
     @State private var type: Int
     @State private var desc: String
+    @State private var isVerified: Bool
     @State private var style: Int?
     @State private var grape: Int?
     @State private var manufacturer: String
@@ -57,6 +58,7 @@ struct ProductDetailView: View {
         _name = State(initialValue: initialInfo.product.name)
         _type = State(initialValue: initialInfo.product.type)
         _desc = State(initialValue: initialInfo.product.desc ?? "")
+        _isVerified = State(initialValue: initialInfo.product.isVerified ?? false)
         _style = State(initialValue: initialInfo.product.details?.style)
         _grape = State(initialValue: initialInfo.product.details?.grape)
         _manufacturer = State(initialValue: initialInfo.product.details?.manufacturer ?? "")
@@ -69,6 +71,7 @@ struct ProductDetailView: View {
         Form {
             imagesSection
             basicInfoSection
+            reviewStatusSection
             detailsSection
             saveSection
             statsSection
@@ -230,6 +233,19 @@ struct ProductDetailView: View {
 
             TextField("설명", text: $desc, axis: .vertical)
                 .lineLimit(3...8)
+        }
+    }
+
+    private var reviewStatusSection: some View {
+        Section("검토 상태") {
+            Toggle(isOn: $isVerified) {
+                Label("검토 완료", systemImage: isVerified ? "checkmark.seal.fill" : "magnifyingglass")
+            }
+            Text(isVerified
+                 ? "검토가 완료된 제품입니다."
+                 : "🔍 아직 검토되지 않은 제품입니다. 확인 후 체크해주세요.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
     }
 
@@ -428,6 +444,7 @@ struct ProductDetailView: View {
         name = latest.product.name
         type = latest.product.type
         desc = latest.product.desc ?? ""
+        isVerified = latest.product.isVerified ?? false
         style = latest.product.details?.style
         grape = latest.product.details?.grape
         manufacturer = latest.product.details?.manufacturer ?? ""
@@ -448,21 +465,21 @@ struct ProductDetailView: View {
         isSaving = true
         defer { isSaving = false }
         do {
-            var details = ProductDetails()
-            details.style = style
-            details.grape = grape
-            details.manufacturer = manufacturer.isEmpty ? nil : manufacturer
-            details.country = country.isEmpty ? nil : country
-            details.alcohol = Double(alcoholText.replacingOccurrences(of: ",", with: "."))
-            details.ibu = Double(ibuText)
+            // 웹 handleSaveChanges와 동일하게, 로드된 원본(info.product) 대비
+            // 실제로 바뀐 필드만 골라 담는다. (nil 필드는 인코딩에서 빠짐)
+            let original = info.product
+            var request = UpdateProductRequest(productId: productId)
 
-            let request = UpdateProductRequest(
-                productId: productId,
-                name: name,
-                desc: desc,
-                type: type,
-                details: details
-            )
+            if name != original.name { request.name = name }
+            if desc != (original.desc ?? "") { request.desc = desc }
+            if type != original.type { request.type = type }
+            if isVerified != (original.isVerified ?? false) { request.isVerified = isVerified }
+
+            let editedDetails = Self.normalizedDetails(formDetails())
+            if editedDetails != Self.normalizedDetails(original.details) {
+                request.details = editedDetails
+            }
+
             _ = try await AdminAPI.updateProduct(request)
             toastMessage = "제품 정보가 수정되었습니다."
             await reloadInfo()
@@ -470,6 +487,32 @@ struct ProductDetailView: View {
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    /// 현재 편집 폼의 상세 정보 값 (빈 문자열/미입력은 nil)
+    private func formDetails() -> ProductDetails {
+        var details = ProductDetails()
+        details.style = style
+        details.grape = grape
+        details.manufacturer = manufacturer.isEmpty ? nil : manufacturer
+        details.country = country.isEmpty ? nil : country
+        details.alcohol = Double(alcoholText.replacingOccurrences(of: ",", with: "."))
+        details.ibu = Double(ibuText)
+        return details
+    }
+
+    /// 웹 normalizeDetails 미러링 — null/빈 문자열 필드를 제거해 변경 비교의 기준을 맞춘다.
+    /// (style/grape/alcohol/ibu는 0 값도 유효하므로 nil만 제외)
+    private static func normalizedDetails(_ details: ProductDetails?) -> ProductDetails {
+        guard let details else { return ProductDetails() }
+        var result = ProductDetails()
+        result.style = details.style
+        result.grape = details.grape
+        result.manufacturer = (details.manufacturer?.isEmpty == false) ? details.manufacturer : nil
+        result.country = (details.country?.isEmpty == false) ? details.country : nil
+        result.alcohol = details.alcohol
+        result.ibu = details.ibu
+        return result
     }
 
     /// 자동 기입: 제품명으로 상세 정보를 조회해 폼에 채움 (저장 버튼을 눌러야 반영).

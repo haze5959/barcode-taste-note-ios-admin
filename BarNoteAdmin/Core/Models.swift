@@ -27,12 +27,18 @@ struct Product: Codable, Hashable, Identifiable {
     var details: ProductDetails?
     var registered: String?
     var noteCount: Int?
+    /// 관리자 검토 완료 여부. 서버가 값을 생략할 수 있으므로 옵셔널로 두고, nil은 미검토로 취급.
+    var isVerified: Bool?
 
     enum CodingKeys: String, CodingKey {
         case id, name, type, desc, rating, details, registered
         case flavorInfos = "flavor_infos"
         case noteCount = "note_count"
+        case isVerified = "is_verified"
     }
+
+    /// 검토가 필요한(아직 검토되지 않은) 제품인지 — 웹의 `!product.is_verified` 미러링
+    var needsReview: Bool { !(isVerified ?? false) }
 }
 
 struct ProductDetails: Codable, Hashable {
@@ -139,16 +145,19 @@ struct ProductDetailsResponse: Codable {
     let details: ProductDetails?
 }
 
+/// 제품 수정 요청. 변경된 필드만 담아 보낸다 (nil 필드는 인코딩에서 제외됨 — encodeIfPresent).
 struct UpdateProductRequest: Encodable {
     let productId: String
-    var name: String?
-    var desc: String?
-    var type: Int?
-    var details: ProductDetails?
+    var name: String? = nil
+    var desc: String? = nil
+    var type: Int? = nil
+    var details: ProductDetails? = nil
+    var isVerified: Bool? = nil
 
     enum CodingKeys: String, CodingKey {
         case name, desc, type, details
         case productId = "product_id"
+        case isVerified = "is_verified"
     }
 }
 
